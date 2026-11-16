@@ -1,0 +1,14 @@
+[project]
+name = "forgegrad"
+version = "0.1.0"
+description = "My own implementation of micrograd"
+readme = "README.md"
+authors = [
+    { name = "Forge", email = "28455546+forge34@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.13.8,<0.14.0"]
+build-backend = "uv_build"
