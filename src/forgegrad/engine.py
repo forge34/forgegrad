@@ -1,6 +1,7 @@
 """Scalar autograd engine: the `Value` type and its backward pass."""
 
 from __future__ import annotations
+from math import cos, sin
 
 
 class Value:
@@ -23,12 +24,43 @@ class Value:
         out._backward = _backward
         return out
 
-    def __mul__(self, other):
+    def __sub__(self, other: Value):
+        out = Value(self.data - other.data, "-", "", [self, other])
+
+        def _backward():
+            self._grad += out._grad
+            other._grad -= out._grad
+
+        out._backward = _backward
+        return out
+
+    def __mul__(self, other: Value):
         out = Value(self.data * other.data, "*", "", [self, other])
 
         def _backward():
             self._grad += other.data * out._grad
             other._grad += self._grad * out._grad
+
+        out._backward = _backward
+        return out
+
+    def sin(self):
+        x = self.data
+        out = Value(sin(x), label="sin", children=[self])
+
+        def _backward():
+            self._grad += out._grad * cos(x)
+
+        out._backward = _backward
+
+        return out
+
+    def relU(self):
+        out = Value(self.data if self.data > 1 else 0, "ReLU", "", [self])
+
+        def _backward():
+            if self.data > 0:
+                self._grad += out._grad
 
         out._backward = _backward
         return out
