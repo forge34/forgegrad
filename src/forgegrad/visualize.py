@@ -28,7 +28,7 @@ def draw_dot(root, format="svg", rankdir="LR"):
         uid = str(id(n))
         # Create a rectangular record node showing label and data
         label_str = (
-            f"{{ {n.label} | data {n.data:.4f} | grad {n._grad:.4f} }}"
+            f"{{ {n.label} | data {n.data:.4f} | grad {n.grad:.4f} }}"
             if n.label
             else f"{{ data {n.data:.4f} }}"
         )

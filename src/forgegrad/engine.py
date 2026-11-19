@@ -1,6 +1,5 @@
 """Scalar autograd engine: the `Value` type and its backward pass."""
 
-from __future__ import annotations
 from math import cos, exp, log, sin
 
 
@@ -10,7 +9,7 @@ class Value:
         self.label = label
         self.children = tuple(children)
         self._op = op
-        self._grad = 0
+        self.grad = 0
         self._backward = lambda: None
 
     def __add__(self, other):
@@ -18,8 +17,8 @@ class Value:
         out = Value(self.data + other.data, "+", "", [self, other])
 
         def _backward():
-            self._grad += out._grad
-            other._grad += out._grad
+            self.grad += out.grad
+            other.grad += out.grad
 
         out._backward = _backward
         return out
@@ -29,8 +28,8 @@ class Value:
         out = Value(self.data - other.data, "-", "", [self, other])
 
         def _backward():
-            self._grad += out._grad
-            other._grad -= out._grad
+            self.grad += out.grad
+            other.grad -= out.grad
 
         out._backward = _backward
         return out
@@ -40,8 +39,8 @@ class Value:
         out = Value(self.data * other.data, "*", "", [self, other])
 
         def _backward():
-            self._grad += other.data * out._grad
-            other._grad += self.data * out._grad
+            self.grad += other.data * out.grad
+            other.grad += self.data * out.grad
 
         out._backward = _backward
         return out
@@ -54,10 +53,10 @@ class Value:
 
     def exp(self):
         x = self.data
-        out = Value(exp(x), children=[self])
+        out = Value(exp(x), op="exp", children=[self])
 
         def _backward():
-            self._grad += out._grad * out.data
+            self.grad += out.grad * out.data
 
         out._backward = _backward
         return out
@@ -67,9 +66,9 @@ class Value:
         out = Value(self.data**other.data, "pow", "", [self, other])
 
         def _backward():
-            self._grad += out._grad * other.data * self.data ** (other.data - 1)
+            self.grad += out.grad * other.data * self.data ** (other.data - 1)
             if self.data > 0:
-                other._grad += out._grad * out.data * log(self.data)
+                other.grad += out.grad * out.data * log(self.data)
 
         out._backward = _backward
         return out
@@ -84,17 +83,17 @@ class Value:
         return self * (other if isinstance(other, Value) else Value(other)) ** -1
 
     def __rtruediv__(self, other):
-        return (self ** -1) * other
+        return (self**-1) * other
 
     def __rpow__(self, other):
         return Value(other) ** self
 
     def sin(self):
         x = self.data
-        out = Value(sin(x), label="sin", children=[self])
+        out = Value(sin(x), op="sin", children=[self])
 
         def _backward():
-            self._grad += out._grad * cos(x)
+            self.grad += out.grad * cos(x)
 
         out._backward = _backward
 
@@ -105,7 +104,7 @@ class Value:
 
         def _backward():
             if self.data > 0:
-                self._grad += out._grad
+                self.grad += out.grad
 
         out._backward = _backward
         return out
@@ -124,9 +123,9 @@ class Value:
 
         build_topo(self)
 
-        self._grad = 1
+        self.grad = 1
         for v in reversed(topo):
             v._backward()
 
     def __repr__(self) -> str:
-        return f"Value(data={self.data})"
+        return f"Value(data={self.data}, grad={self.grad})"
