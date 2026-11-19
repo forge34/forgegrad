@@ -13,7 +13,7 @@ class Value:
         self._grad = 0
         self._backward = lambda: None
 
-    def __add__(self, other: Value):
+    def __add__(self, other):
         other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data + other.data, "+", "", [self, other])
 
@@ -24,7 +24,7 @@ class Value:
         out._backward = _backward
         return out
 
-    def __sub__(self, other: Value):
+    def __sub__(self, other):
         other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data - other.data, "-", "", [self, other])
 
@@ -35,7 +35,7 @@ class Value:
         out._backward = _backward
         return out
 
-    def __mul__(self, other: Value):
+    def __mul__(self, other):
         other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data * other.data, "*", "", [self, other])
 
@@ -48,6 +48,9 @@ class Value:
 
     def __rmul__(self, other):
         return self * other
+
+    def __neg__(self):
+        return self * -1
 
     def exp(self):
         x = self.data
@@ -70,6 +73,21 @@ class Value:
 
         out._backward = _backward
         return out
+
+    def __radd__(self, other):
+        return self + other
+
+    def __rsub__(self, other):
+        return (-self) + other
+
+    def __truediv__(self, other):
+        return self * (other if isinstance(other, Value) else Value(other)) ** -1
+
+    def __rtruediv__(self, other):
+        return (self ** -1) * other
+
+    def __rpow__(self, other):
+        return Value(other) ** self
 
     def sin(self):
         x = self.data
