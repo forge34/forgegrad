@@ -30,7 +30,7 @@ def draw_dot(root, format="svg", rankdir="LR"):
         label_str = (
             f"{{ {n.label} | data {n.data:.4f} | grad {n.grad:.4f} }}"
             if n.label
-            else f"{{ data {n.data:.4f} }}"
+            else f"{{ data {n.data:.4f} | grad {n.grad:.4f}}}"
         )
         dot.node(name=uid, label=label_str, shape="record")
 
