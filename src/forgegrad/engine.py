@@ -1,7 +1,7 @@
 """Scalar autograd engine: the `Value` type and its backward pass."""
 
 from __future__ import annotations
-from math import cos, sin
+from math import cos, exp, log, sin
 
 
 class Value:
@@ -14,7 +14,7 @@ class Value:
         self._backward = lambda: None
 
     def __add__(self, other: Value):
-
+        other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data + other.data, "+", "", [self, other])
 
         def _backward():
@@ -25,6 +25,7 @@ class Value:
         return out
 
     def __sub__(self, other: Value):
+        other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data - other.data, "-", "", [self, other])
 
         def _backward():
@@ -35,11 +36,37 @@ class Value:
         return out
 
     def __mul__(self, other: Value):
+        other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data * other.data, "*", "", [self, other])
 
         def _backward():
             self._grad += other.data * out._grad
             other._grad += self.data * out._grad
+
+        out._backward = _backward
+        return out
+
+    def __rmul__(self, other):
+        return self * other
+
+    def exp(self):
+        x = self.data
+        out = Value(exp(x), children=[self])
+
+        def _backward():
+            self._grad += out._grad * out.data
+
+        out._backward = _backward
+        return out
+
+    def __pow__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data**other.data, "pow", "", [self, other])
+
+        def _backward():
+            self._grad += out._grad * other.data * self.data ** (other.data - 1)
+            if self.data > 0:
+                other._grad += out._grad * out.data * log(self.data)
 
         out._backward = _backward
         return out
@@ -56,7 +83,7 @@ class Value:
         return out
 
     def relU(self):
-        out = Value(self.data if self.data > 1 else 0, "ReLU", "", [self])
+        out = Value(self.data if self.data > 0 else 0, "ReLU", "", [self])
 
         def _backward():
             if self.data > 0:
@@ -79,7 +106,7 @@ class Value:
 
         build_topo(self)
 
-        self.grad = 1
+        self._grad = 1
         for v in reversed(topo):
             v._backward()
 
