@@ -9,7 +9,7 @@ class Value:
         self.label = label
         self.children = tuple(children)
         self._op = op
-        self.grad = 0
+        self.grad = 0.0
         self._backward = lambda: None
 
     def __add__(self, other):
