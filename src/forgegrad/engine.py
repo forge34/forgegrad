@@ -99,7 +99,7 @@ class Value:
 
         return out
 
-    def relU(self):
+    def relu(self):
         out = Value(self.data if self.data > 0 else 0, "ReLU", "", [self])
 
         def _backward():
